@@ -838,6 +838,9 @@ async function renderReservations(){
 
 let r = await getReservations();
 
+const today = new Date().toISOString().split("T")[0];
+r = r.filter(x => x.date >= today);
+
 const slotOrder = {
   "Morning": 0,
   "Afternoon": 1,
