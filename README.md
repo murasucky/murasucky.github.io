@@ -1,1 +1,2 @@
-# murasucky.github.io
+# Hobo House Laundry Scheduler
+Vibe coded + Supabase
