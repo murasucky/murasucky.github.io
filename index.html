@@ -547,11 +547,43 @@ margin-top:10px;
                 <button class="user-btn" onclick="selectUser('Eelin',this)">Eelin</button>
             </div>
 
-            <label>Selected Date</label>
-            <div id="selectedDateDisplay"
-                 style="padding:10px;border:1px solid var(--border);border-radius:10px;">
-                Select from calendar
-            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;"></div>
+
+<label>Date</label>
+
+<div style="display:flex;gap:8px;align-items:center;">
+
+  <div id="selectedDateDisplay"
+       style="flex:1;padding:10px;border:1px solid var(--border);border-radius:10px;">
+      Select from calendar
+  </div>
+
+  <button onclick="toggleMiniCalendar()"
+          style="width:auto;padding:10px 12px;border-radius:10px">
+    📅
+  </button>
+
+</div>
+
+<!-- MINI CALENDAR PANEL -->
+<div id="miniCalendarPanel" style="
+  display:none;
+  margin-top:10px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:10px;
+  background:white;
+">
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <button onclick="miniChangeMonth(-1)" style="width:auto">◀</button>
+    <strong id="miniMonthTitle"></strong>
+    <button onclick="miniChangeMonth(1)" style="width:auto">▶</button>
+  </div>
+
+  <div id="miniCalendar" class="calendar"></div>
+
+</div>
 
             <label>Time Slots</label>
             <div class="slot-grid">
@@ -633,6 +665,7 @@ let currentDate=new Date();
 let selectedUser="";
 let selectedDate=new Date().toISOString().split("T")[0];
 let currentFilter="date";
+let miniDate = new Date();
 
 const today=new Date().toISOString().split("T")[0];
 
@@ -792,9 +825,13 @@ console.error(error);
 return showModal("Error","Booking failed");
 }
 
-await renderAll();
+try {
+  await renderAll();
+} catch (e) {
+  console.error("renderAll failed", e);
+}
 
-showModal("Success","Booked!");
+showModal("Success", "Booked!");
 }
 
 /* CANCEL */
@@ -838,9 +875,11 @@ async function renderReservations(){
 
 let r = await getReservations();
 
-const today = new Date().toISOString().split("T")[0];
-r = r.filter(x => x.date >= today);
+const today = new Date();
+today.setHours(0,0,0,0);
 
+r = r.filter(x => new Date(x.date) >= today);
+  
 const slotOrder = {
   "Morning": 0,
   "Afternoon": 1,
@@ -933,6 +972,7 @@ let ds=
 
 let cell=document.createElement("div");
 cell.className="day";
+cell.dataset.date = ds;
 
 if(ds===today)
 cell.classList.add("today");
@@ -1001,6 +1041,82 @@ async function checkForUpdates(){
   }
 }
 
+/* MINI CALENDAR */
+function toggleMiniCalendar(){
+  const panel = document.getElementById("miniCalendarPanel");
+  panel.style.display = panel.style.display === "none" ? "block" : "none";
+  renderMiniCalendar();
+}
+
+async function renderMiniCalendar(){
+
+  const miniCalendar = document.getElementById("miniCalendar");
+  const miniMonthTitle = document.getElementById("miniMonthTitle");
+
+  miniCalendar.innerHTML = "";
+
+  miniMonthTitle.textContent =
+    miniDate.toLocaleString("default",{month:"long",year:"numeric"});
+
+  let y = miniDate.getFullYear();
+  let m = miniDate.getMonth();
+
+  let first = new Date(y,m,1).getDay();
+  let total = new Date(y,m+1,0).getDate();
+
+  for(let i=0;i<first;i++){
+    miniCalendar.innerHTML += `<div></div>`;
+  }
+
+  for(let d=1; d<=total; d++){
+
+    let ds =
+      `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+
+    let cell = document.createElement("div");
+    cell.className = "day";
+    cell.dataset.date = ds;
+    cell.style.minHeight = "50px";
+    cell.style.fontSize = "12px";
+
+    if(ds === selectedDate){
+      cell.classList.add("selected-day");
+    }
+
+    cell.innerHTML = `<b>${d}</b>`;
+
+    cell.onclick = () => {
+  selectedDate = ds;
+  selectedDateDisplay.innerText = ds;
+
+  // update mini calendar highlight
+  document.querySelectorAll("#miniCalendar .day")
+    .forEach(d => d.classList.remove("selected-day"));
+  cell.classList.add("selected-day");
+
+  // update MAIN calendar highlight (IMPORTANT)
+  document.querySelectorAll("#calendar .day")
+    .forEach(d => d.classList.remove("selected-day"));
+
+  // find matching main calendar cell by date
+  const mainCells = document.querySelectorAll("#calendar .day");
+
+  mainCells.forEach(c => {
+    if (c.dataset.date === ds) {
+      c.classList.add("selected-day");
+    }
+  });
+};
+
+    miniCalendar.appendChild(cell);
+  }
+}
+
+function miniChangeMonth(n){
+  miniDate.setMonth(miniDate.getMonth()+n);
+  renderMiniCalendar();
+}
+
 /* INIT */
 
 async function renderAll(){
@@ -1012,6 +1128,7 @@ await renderReservations();
 await renderAll();
 })();
 
+  
 </script>
 
 </body>
