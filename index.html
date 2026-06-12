@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laundry Scheduler</title>
+
+<style>
+:root{
+--bg:#f4f7fb;
+--card:#fff;
+--text:#111827;
+--muted:#6b7280;
+--primary:#2563eb;
+--danger:#ef4444;
+--border:#e5e7eb;
+}
+
+body{
+margin:0;
+padding:20px;
+font-family:Inter,Arial,sans-serif;
+
+background:
+radial-gradient(circle at 15% 20%, rgba(255,140,180,.28), transparent 40%),
+radial-gradient(circle at 85% 25%, rgba(120,180,255,.28), transparent 42%),
+radial-gradient(circle at 50% 85%, rgba(170,255,210,.22), transparent 45%),
+linear-gradient(135deg, #f8fbff, #eef3ff, #fff1f6, #f6fbff);
+
+background-attachment: fixed;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:-40%;
+  z-index:-1;
+
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255,120,180,.45), transparent 40%),
+    radial-gradient(circle at 70% 20%, rgba(120,180,255,.45), transparent 42%),
+    radial-gradient(circle at 50% 80%, rgba(170,255,210,.35), transparent 45%),
+    radial-gradient(circle at 80% 70%, rgba(255,210,120,.25), transparent 50%);
+
+  filter: blur(45px) saturate(.75);
+
+  transform: translate3d(0,0,0);
+  will-change: transform;
+  opacity:0.9;
+
+  animation: blobMove 14s ease-in-out infinite alternate;
+}
+
+@keyframes blobMove{
+  0%{
+    transform: translate3d(-6%, -4%, 0) scale(1.1) rotate(0deg);
+  }
+  50%{
+    transform: translate3d(4%, 6%, 0) scale(1.2) rotate(8deg);
+  }
+  100%{
+    transform: translate3d(-3%, 8%, 0) scale(1.15) rotate(-6deg);
+  }
+}
+
+/* HEADER */
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px;
+  padding:20px;
+
+  background:rgba(255,255,255,.18);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+
+  border:1px solid rgba(255,255,255,.25);
+  border-radius:18px;
+
+  box-shadow:
+    0 18px 40px rgba(0,0,0,.08);
+
+  position:relative;
+  overflow:hidden;
+}
+
+/* subtle glass shine */
+.header::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,.25), transparent 60%),
+    radial-gradient(circle at 80% 80%, rgba(180,220,255,.12), transparent 60%);
+  pointer-events:none;
+}
+
+/* LAYOUT */
+.main-layout{
+display:grid;
+grid-template-columns:380px 1fr;
+gap:18px;
+}
+@media(max-width:900px){
+.main-layout{grid-template-columns:1fr;}
+}
+
+.card{
+background:rgba(255,255,255,.15);
+
+backdrop-filter: blur(24px);
+-webkit-backdrop-filter: blur(24px);
+
+border:1px solid rgba(255,255,255,.28);
+
+border-radius:18px;
+padding:18px;
+
+position:relative;
+overflow:hidden;
+
+box-shadow:
+0 20px 45px rgba(0,0,0,.08);
+
+transition:
+transform .25s ease,
+box-shadow .25s ease;
+}
+
+/* liquid light layer */
+.card::before{
+content:"";
+position:absolute;
+inset:0;
+
+background:
+radial-gradient(circle at 20% 10%, rgba(255,255,255,.25), transparent 55%),
+radial-gradient(circle at 80% 90%, rgba(180,220,255,.12), transparent 60%);
+
+pointer-events:none;
+}
+
+/* subtle hover lift */
+.card:hover{
+transform:translateY(-1px);
+
+box-shadow:
+0 28px 70px rgba(0,0,0,.12);
+}
+
+/* BUTTONS */
+
+button{
+width:100%;
+padding:10px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+
+color:white;
+
+position:relative;
+overflow:hidden;
+
+backdrop-filter: blur(6px);
+-webkit-backdrop-filter: blur(6px);
+
+transition:
+transform .2s ease,
+filter .2s ease,
+box-shadow .2s ease;
+}
+
+/* glossy highlight */
+button::before{
+content:"";
+position:absolute;
+top:0;
+left:0;
+right:0;
+height:50%;
+background:linear-gradient(
+to bottom,
+rgba(255,255,255,.22),
+rgba(255,255,255,0)
+);
+pointer-events:none;
+}
+
+/* NORMAL BUTTONS */
+
+button:not(.btn-danger){
+background:linear-gradient(
+135deg,
+#60a5fa,
+#1d4ed8
+);
+
+box-shadow:
+0 2px 6px rgba(37,99,235,.15);
+}
+
+button:not(.btn-danger):hover{
+transform:translateY(-2px);
+filter:brightness(1.08);
+
+box-shadow:
+0 6px 18px rgba(37,99,235,.25);
+}
+
+/* DANGER BUTTONS */
+
+.btn-danger{
+background:linear-gradient(
+135deg,
+#fb7185,
+#dc2626
+);
+
+box-shadow:
+0 2px 6px rgba(239,68,68,.15);
+}
+
+.btn-danger:hover{
+transform:translateY(-2px);
+filter:brightness(1.08);
+
+box-shadow:
+0 6px 18px rgba(239,68,68,.25);
+}
+
+/* USERS */
+
+.user-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:8px;
+margin-top:8px;
+margin-bottom:20px;
+}
+
+.user-btn{
+background:linear-gradient(
+135deg,
+rgba(226,232,240,.9),
+rgba(203,213,225,.9)
+);
+
+color:#0f172a !important;
+
+border:none;
+border-radius:10px;
+padding:12px;
+cursor:pointer;
+
+transition:
+transform .2s ease,
+filter .2s ease,
+box-shadow .2s ease;
+}
+
+.user-btn:hover{
+transform:translateY(-1px);
+filter:brightness(1.05);
+}
+
+.user-btn.active{
+background:linear-gradient(
+135deg,
+#38bdf8,
+#2563eb
+);
+
+color:white !important;
+
+transform:translateY(-1px);
+
+box-shadow:
+0 8px 22px rgba(37,99,235,.35),
+0 2px 6px rgba(0,0,0,.08);
+
+border:1px solid rgba(255,255,255,.35);
+}
+
+.user-btn{
+transition:
+transform .2s ease,
+filter .2s ease,
+box-shadow .2s ease,
+background .2s ease,
+color .2s ease;
+}
+
+#selectedDateDisplay{
+margin-top:8px;
+margin-bottom:20px;
+}
+
+.slot-grid{
+display:flex;
+flex-direction:column;
+gap:10px;
+margin-top:8px;
+}
+
+/* UPCOMING */
+.upcoming-box{
+max-height:260px;
+overflow-y:auto;
+padding-right:6px;
+}
+
+.filter-bar{
+display:grid;
+grid-template-columns:repeat(5,1fr);
+gap:6px;
+margin-bottom:12px;
+}
+.filter-btn{
+background:#e5e7eb;
+color:#111827;
+border:none;
+border-radius:10px;
+padding:10px;
+cursor:pointer;
+}
+.filter-btn.active{
+background:var(--primary);
+color:white;
+}
+
+/* CALENDAR */
+
+.calendar{
+display:grid;
+grid-template-columns: repeat(7, minmax(0, 1fr));
+gap:6px;
+}
+
+/* BOOKING TAG INSIDE DAY CELL */
+.booking{
+  margin-top:4px;
+  padding:4px 6px;
+
+  font-size:10px;
+  font-weight:600;
+
+  color:white;
+  background:linear-gradient(135deg,#3b82f6,#1d4ed8);
+  border-radius:999px;
+
+  display:block;          /* IMPORTANT: no inline width behavior */
+  width:100%;             /* force fit inside cell */
+  box-sizing:border-box;  /* include padding inside width */
+
+  white-space:nowrap;     /* prevent line breaking */
+  overflow:hidden;        /* stop overflow */
+  text-overflow:ellipsis; /* cut instead of expanding */
+
+  box-shadow:0 6px 14px rgba(37,99,235,.25);
+}
+
+.day{
+min-width: 0;
+min-height:110px;
+border:1px solid var(--border);
+border-radius:10px;
+padding:6px;
+cursor:pointer;
+
+position:relative;
+overflow:visible;
+
+transition:
+transform .12s ease,
+box-shadow .12s ease,
+border-color .12s ease;
+}
+
+/* hover */
+.day:hover{
+transform:translateY(-2px);
+box-shadow:0 8px 18px rgba(0,0,0,.08);
+}
+
+/* SELECTED DAY (smooth, no bounce) */
+.selected-day{
+  border:1px solid rgba(22,163,74,.7);
+  box-shadow:
+    0 0 0 2px rgba(22,163,74,.18),
+    0 10px 20px rgba(22,163,74,.18);
+  transform:scale(1.02);
+}
+
+/* TODAY indicator */
+/* =========================
+   TODAY (FIXED + PRIORITY RING)
+========================= */
+
+.today{
+  position: relative;
+  border: 1px solid rgba(37,99,235,.25);
+  
+  z-index: 2;
+}
+
+/* "Today" badge */
+.today::after{
+  content: "Today";
+  position: absolute;
+  top: 6px;
+  right: 6px;
+
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 999px;
+
+  background: rgba(37,99,235,.15);
+  color: #1d4ed8;
+
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  z-index: 3;
+}
+
+/* press feedback */
+.day:active{
+transform:scale(0.995);
+}
+
+/* animation */
+@keyframes selectPop{
+0%{
+transform:scale(0.98);
+}
+100%{
+transform:scale(1.02);
+}
+}
+
+/* =========================
+   MODAL (NEW ANIMATED)
+========================= */
+
+.modal{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.45);
+display:flex;
+align-items:center;
+justify-content:center;
+
+/* animation base */
+opacity:0;
+pointer-events:none;
+transition:opacity .2s ease;
+}
+
+.modal.show{
+opacity:1;
+pointer-events:auto;
+}
+
+.modal-box{
+background:var(--card);
+padding:20px;
+border-radius:16px;
+width:320px;
+
+/* animation */
+transform:scale(.9);
+opacity:0;
+transition:all .2s ease;
+}
+
+.modal.show .modal-box{
+transform:scale(1);
+opacity:1;
+}
+
+.modal-actions{
+display:flex;
+gap:10px;
+margin-top:10px;
+}
+
+.title{
+  font-family: "DotGothic16", sans-serif;
+  font-weight: 400;
+  font-size: 22px;
+  letter-spacing: 1px;
+
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  text-shadow: 0 8px 30px rgba(37,99,235,.25);
+}
+
+@media (max-width: 600px) {
+  .booking{
+    font-size:9px;
+    padding:3px 5px;
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+
+<div>
+<h2 class="title">Hobo House Laundry Scheduler</h2>
+</div>
+
+<button onclick="checkForUpdates()" style="width:auto;padding:8px 12px;">
+  ⭯
+</button>
+
+</div>
+
+<!-- MAIN -->
+<div class="main-layout">
+
+    <!-- LEFT COLUMN -->
+    <div>
+
+        <!-- RESERVE SLOT -->
+        <div class="card">
+
+            <h3>Reserve Slot</h3>
+
+            <label>Select User</label>
+            <div class="user-grid">
+                <button class="user-btn" onclick="selectUser('Hena',this)">Hena</button>
+                <button class="user-btn" onclick="selectUser('Tristan',this)">Tristan</button>
+                <button class="user-btn" onclick="selectUser('Felix',this)">Felix</button>
+                <button class="user-btn" onclick="selectUser('Eelin',this)">Eelin</button>
+            </div>
+
+            <label>Selected Date</label>
+            <div id="selectedDateDisplay"
+                 style="padding:10px;border:1px solid var(--border);border-radius:10px;">
+                Select from calendar
+            </div>
+
+            <label>Time Slots</label>
+            <div class="slot-grid">
+                <button onclick="confirmBook('Morning')">Morning</button>
+                <button onclick="confirmBook('Afternoon')">Afternoon</button>
+                <button onclick="confirmBook('Evening')">Evening</button>
+            </div>
+
+        </div>
+
+        <!-- UPCOMING RESERVATIONS -->
+        <div class="card" style="margin-top:16px">
+
+            <h3>Reservation Manager</h3>
+
+            <div class="filter-bar">
+                <button class="filter-btn active" onclick="setFilter('date',this)">All</button>
+                <button class="filter-btn" onclick="setFilter('Hena',this)">Hena</button>
+                <button class="filter-btn" onclick="setFilter('Tristan',this)">Tristan</button>
+                <button class="filter-btn" onclick="setFilter('Felix',this)">Felix</button>
+                <button class="filter-btn" onclick="setFilter('Eelin',this)">Eelin</button>
+            </div>
+
+            <div id="reservationList" class="upcoming-box"></div>
+
+        </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN (CALENDAR) -->
+    <div class="card">
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <button onclick="changeMonth(-1)" style="width:auto">◀</button>
+            <h3 id="monthTitle"></h3>
+            <button onclick="changeMonth(1)" style="width:auto">▶</button>
+        </div>
+
+        <div class="calendar" id="calendar"></div>
+
+    </div>
+
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="modal">
+<div class="modal-box">
+<h3 id="modalTitle"></h3>
+<p id="modalText"></p>
+<div id="modalActions" class="modal-actions"></div>
+</div>
+</div>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<script>
+
+window.onerror = function(message, source, line, col, error){
+  alert(
+    "ERROR:\n\n" +
+    message +
+    "\n\nLine: " + line
+  );
+};
+
+/* KEY HERE */
+
+const supabaseUrl = "https://qvnsjuawftqaasadcchp.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2bnNqdWF3ZnRxYWFzYWRjY2hwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMzY1ODcsImV4cCI6MjA5NjgxMjU4N30.GW77VJJzYBo3OIRqQ6XzOFmHKlvKcguHOw4asGRJ2U0";
+
+console.log(window.supabase);
+
+const supabaseClient = window.supabase.createClient(
+  supabaseUrl,
+  supabaseKey
+);
+
+let currentDate=new Date();
+let selectedUser="";
+let selectedDate=new Date().toISOString().split("T")[0];
+let currentFilter="date";
+
+const today=new Date().toISOString().split("T")[0];
+
+const selectedDateDisplay =
+document.getElementById("selectedDateDisplay");
+
+if(selectedDateDisplay){
+selectedDateDisplay.innerText=selectedDate;
+}
+
+const calendar =
+document.getElementById("calendar");
+
+const monthTitle =
+document.getElementById("monthTitle");
+
+const reservationList =
+document.getElementById("reservationList");
+
+const modal =
+document.getElementById("modal");
+
+const modalTitle =
+document.getElementById("modalTitle");
+
+const modalText =
+document.getElementById("modalText");
+
+const modalActions =
+document.getElementById("modalActions");
+
+/* STORAGE */
+
+async function getReservations(){
+
+  const { data, error } = await supabaseClient
+    .from("reservations")
+    .select("*");
+
+  console.log("RESERVATIONS:", data);
+  console.log("ERROR:", error);
+
+  if(error){
+    console.error(error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/* USER */
+
+function selectUser(u,b){
+selectedUser=u;
+document.querySelectorAll(".user-btn").forEach(x=>x.classList.remove("active"));
+b.classList.add("active");
+}
+
+/* FILTER */
+
+async function setFilter(f,b){
+currentFilter=f;
+document.querySelectorAll(".filter-btn").forEach(x=>x.classList.remove("active"));
+b.classList.add("active");
+await renderReservations();
+}
+
+/* =========================
+   MODAL
+========================= */
+
+function showModal(t,m,actions=[],type="info"){
+
+modalTitle.innerText=t;
+modalText.innerText=m;
+
+modalActions.innerHTML="";
+
+if(type!=="confirm"){
+const close=document.createElement("button");
+close.innerText="Close";
+close.onclick=closeModal;
+modalActions.appendChild(close);
+}
+
+actions.forEach(a=>{
+const b=document.createElement("button");
+b.innerText=a.text;
+b.className=a.class||"";
+b.onclick=a.onClick;
+modalActions.appendChild(b);
+});
+
+modal.classList.add("show");
+}
+
+function closeModal(){
+modal.classList.remove("show");
+}
+
+/* BOOK */
+
+function confirmBook(slot){
+showModal(
+"Confirm Booking",
+`Book ${slot}?`,
+[
+{text:"Cancel",onClick:closeModal},
+{text:"Confirm",onClick:()=>bookSlot(slot)}
+],
+"confirm"
+);
+}
+
+function isPast(d){
+const x=new Date(d);
+const t=new Date(today);
+x.setHours(0,0,0,0);
+t.setHours(0,0,0,0);
+return x<t;
+}
+
+async function bookSlot(slot){
+
+closeModal();
+
+if(!selectedUser||!selectedDate){
+return showModal("Error","No user selected");
+}
+
+if(isPast(selectedDate)){
+return showModal("Invalid","Past date blocked");
+}
+
+const reservations = await getReservations();
+
+if(
+reservations.find(
+x=>x.date===selectedDate&&x.slot===slot
+)
+){
+return showModal("Taken","Already booked");
+}
+
+const { error } = await supabaseClient
+.from("reservations")
+.insert([
+{
+user:selectedUser,
+date:selectedDate,
+slot:slot
+}
+]);
+
+if(error){
+console.error(error);
+return showModal("Error","Booking failed");
+}
+
+await renderAll();
+
+showModal("Success","Booked!");
+}
+
+/* CANCEL */
+
+function confirmCancel(id){
+showModal(
+"Confirm Cancellation",
+"Delete this booking?",
+[
+{text:"No",onClick:closeModal},
+{
+text:"Yes",
+class:"btn-danger",
+onClick:()=>cancelReservation(id)
+}
+],
+"confirm"
+);
+}
+
+async function cancelReservation(id){
+
+  closeModal();
+
+  const { error } = await supabaseClient
+    .from("reservations")
+    .delete()
+    .eq("id", id);
+
+  if(error){
+    console.error(error);
+    return;
+  }
+
+  await renderAll();
+}
+
+/* UPCOMING */
+
+async function renderReservations(){
+
+let r = await getReservations();
+
+const slotOrder = {
+  "Morning": 0,
+  "Afternoon": 1,
+  "Evening": 2
+};
+
+if(currentFilter!=="date"){
+
+r=r.filter(x=>x.user===currentFilter);
+
+}else{
+
+r.sort((a, b) => {
+
+const dateDiff =
+new Date(a.date) - new Date(b.date);
+
+if (dateDiff !== 0)
+return dateDiff;
+
+return slotOrder[a.slot] - slotOrder[b.slot];
+
+});
+
+}
+
+reservationList.innerHTML="";
+
+if(r.length===0){
+reservationList.innerHTML=`<div class="empty">No reservations</div>`;
+return;
+}
+
+r.forEach(x=>{
+
+reservationList.innerHTML+=`
+<div class="card" style="margin-top:8px">
+<b>${x.user}</b><br>
+${x.date}<br>
+${x.slot}<br><br>
+
+<button
+class="btn-danger"
+onclick="confirmCancel('${x.id}')">
+Cancel
+</button>
+
+</div>`;
+
+});
+
+}
+
+/* CALENDAR */
+
+async function renderCalendar(){
+
+calendar.innerHTML="";
+
+monthTitle.textContent=
+currentDate.toLocaleString(
+"default",
+{
+month:"long",
+year:"numeric"
+}
+);
+
+let y=currentDate.getFullYear();
+let m=currentDate.getMonth();
+
+let first=new Date(y,m,1).getDay();
+let total=new Date(y,m+1,0).getDate();
+
+for(let i=0;i<first;i++)
+calendar.innerHTML+=`<div></div>`;
+
+const reservations = await getReservations();
+
+const slotOrder = {
+  "Morning": 0,
+  "Afternoon": 1,
+  "Evening": 2
+};
+
+for(let d=1;d<=total;d++){
+
+let ds=
+`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+
+let cell=document.createElement("div");
+cell.className="day";
+
+if(ds===today)
+cell.classList.add("today");
+
+if(ds===selectedDate)
+cell.classList.add("selected-day");
+
+if(isPast(ds)){
+cell.style.opacity="0.4";
+cell.style.pointerEvents="none";
+}
+
+cell.innerHTML=`<b>${d}</b>`;
+
+reservations
+.filter(r=>r.date===ds)
+.sort((a,b)=>slotOrder[a.slot]-slotOrder[b.slot])
+.forEach(r=>{
+
+cell.innerHTML+=`
+<div class="booking">
+${r.user} - ${r.slot}
+</div>`;
+
+});
+
+cell.onclick = () => {
+
+selectedDate = ds;
+selectedDateDisplay.innerText = ds;
+
+document
+.querySelectorAll(".day")
+.forEach(day => day.classList.remove("selected-day"));
+
+cell.classList.add("selected-day");
+
+setTimeout(()=>{
+cell.style.animation="none";
+cell.offsetHeight;
+cell.style.animation="selectPop .14s ease";
+},0);
+
+};
+
+calendar.appendChild(cell);
+
+}
+
+}
+
+/* MONTH */
+
+async function changeMonth(n){
+currentDate.setMonth(currentDate.getMonth()+n);
+await renderCalendar();
+}
+
+async function checkForUpdates(){
+  try {
+    await renderAll();
+    showModal("Updated", "Latest reservations loaded.");
+  } catch (err) {
+    console.error(err);
+    showModal("Error", "Failed to fetch updates.");
+  }
+}
+
+/* INIT */
+
+async function renderAll(){
+await renderCalendar();
+await renderReservations();
+}
+
+(async()=>{
+await renderAll();
+})();
+
+</script>
+
+</body>
+</html>
