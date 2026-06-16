@@ -875,10 +875,8 @@ async function renderReservations(){
 
 let r = await getReservations();
 
-const today = new Date();
-today.setHours(0,0,0,0);
-
-r = r.filter(x => new Date(x.date) >= today);
+// hide past reservations
+r = r.filter(x => !isPast(x.date));
   
 const slotOrder = {
   "Morning": 0,
